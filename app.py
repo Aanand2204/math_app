@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import matplotlib
+import io
+import base64
 matplotlib.use('Agg')  # Use Agg backend to avoid Tkinter issues
 
 
@@ -122,7 +124,7 @@ def generate_plot(function):
         f = sp.lambdify(x, function, 'numpy')
         y_vals = f(x_vals)
 
-        # Handle constant/scalar functions (e.g. tan(2))
+        # Handle constant/scalar functions
         if np.isscalar(y_vals):
             return None, "Function could not be plotted."
 
@@ -135,6 +137,7 @@ def generate_plot(function):
         if not np.any(valid):
             return None, "Function could not be plotted."
 
+        # Create plot
         plt.figure()
         plt.plot(x_vals[valid], y_vals[valid], label=str(function))
         plt.title("Plot of the Function")
@@ -143,14 +146,20 @@ def generate_plot(function):
         plt.grid()
         plt.legend()
 
-        plot_path = "static/plot.png"
-        plt.savefig(plot_path)
+        # Save plot to memory (NOT disk)
+        img = io.BytesIO()
+        plt.savefig(img, format='png')
         plt.close()
+        img.seek(0)
 
-        return plot_path, None
+        # Encode image to Base64
+        plot_base64 = base64.b64encode(img.getvalue()).decode('utf-8')
+
+        return plot_base64, None
 
     except Exception:
         return None, "Function could not be plotted."
+
 
 if __name__ == '__main__':
     if not os.path.exists('static'):
