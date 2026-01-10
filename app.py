@@ -15,6 +15,7 @@ def index():
     steps = []
     error = None
     plot_path = None
+    plot_error = None
 
     if request.method == 'POST':
         function_input = request.form.get('function')
@@ -40,12 +41,13 @@ def index():
             else:
                 error = "Invalid operation selected."
 
-            plot_path = generate_plot(function)
+            plot_path, plot_error = generate_plot(function)
+           
 
-        except Exception as e:
-            error = str(e)
+        except Exception:
+            error = "Invalid mathematical expression."
 
-    return render_template('index.html', result=result, steps=steps, error=error, plot_path=plot_path)
+    return render_template('index.html', result=result, steps=steps, error=error, plot_path=plot_path, plot_error=plot_error)
 
 def log_steps_with_base(function, base):
     steps = [f"Applying logarithm with base {base}"]
@@ -113,34 +115,42 @@ def differentiation_steps(function, x):
     return simplified, steps
 
 def generate_plot(function):
+    x = sp.symbols('x')
     x_vals = np.linspace(-10, 10, 400)
-    f = sp.lambdify(sp.symbols('x'), function, 'numpy')
 
     try:
+        f = sp.lambdify(x, function, 'numpy')
         y_vals = f(x_vals)
-    except Exception as e:
-        return None
 
-    if np.isscalar(y_vals):
-        y_vals = np.array([y_vals])
-    valid_indices = np.isfinite(y_vals)
-    x_vals = x_vals[valid_indices]
-    y_vals = y_vals[valid_indices]
+        # Handle constant/scalar functions (e.g. tan(2))
+        if np.isscalar(y_vals):
+            return None, "Function could not be plotted."
 
-    plt.figure()
-    plt.plot(x_vals, y_vals, label=str(function))
-    plt.title('Plot of the Function')
-    plt.xlabel('x')
-    plt.ylabel('f(x)')
-    plt.axhline(0, color='black', linewidth=0.5, ls='--')
-    plt.axvline(0, color='black', linewidth=0.5, ls='--')
-    plt.grid()
-    plt.legend()
-    
-    plot_path = 'static/plot.png'
-    plt.savefig(plot_path)
-    plt.close()
-    return plot_path
+        y_vals = np.array(y_vals)
+
+        if y_vals.shape != x_vals.shape:
+            return None, "Function could not be plotted."
+
+        valid = np.isfinite(y_vals)
+        if not np.any(valid):
+            return None, "Function could not be plotted."
+
+        plt.figure()
+        plt.plot(x_vals[valid], y_vals[valid], label=str(function))
+        plt.title("Plot of the Function")
+        plt.xlabel("x")
+        plt.ylabel("f(x)")
+        plt.grid()
+        plt.legend()
+
+        plot_path = "static/plot.png"
+        plt.savefig(plot_path)
+        plt.close()
+
+        return plot_path, None
+
+    except Exception:
+        return None, "Function could not be plotted."
 
 if __name__ == '__main__':
     if not os.path.exists('static'):

@@ -58,8 +58,18 @@
 
         {% if plot_path %}
         <div class="card mt-4 p-4 text-center">
-            <h2 class="text-warning">Graph:</h2>
-            <img src="{{ plot_path }}" class="img-fluid rounded shadow" alt="Function Graph">
+            <h3 class="text-warning">Graph:</h3>
+            {% if plot_path %}
+                <img src="{{ plot_path }}" alt="Function Graph" class="img-fluid">
+            {% elif plot_error %}
+                <p style="color: red; font-weight: 500;">
+                    {{ plot_error }}
+                </p>
+            {% else %}
+                <p style="color: gray;">
+                    No graph available.
+                </p>
+            {% endif %}
         </div>
         {% endif %}
 
