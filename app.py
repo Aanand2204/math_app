@@ -17,43 +17,31 @@ def index():
     error = None
     plot_path = None
     plot_error = None
-    variables = []
 
     if request.method == "POST":
         try:
+            steps = []
             function_input = request.form.get("function")
             operation = request.form.get("operation")
             base_input = request.form.get("base")
 
-            function = parse_function(function_input)
-            steps.append(f"Parsed function: $$ {sp.latex(function)} $$")
+            expr = parse_function(function_input)
 
-            variables = sorted(function.free_symbols, key=lambda s: s.name)
-            steps.append(f"Detected variables: {', '.join(map(str, variables))}")
+            variables = sorted(expr.free_symbols, key=lambda s: s.name)
+            if not variables:
+                raise ValueError("No variable found in the expression.")
 
-            selected_var = request.form.get("variable")
-            if operation in ["derivative", "integral"]:
-                if len(variables) == 0:
-                    raise ValueError("No variable to differentiate or integrate.")
-
-                if len(variables) == 1:
-                    var = variables[0]
-                else:
-                    if not selected_var:
-                        raise ValueError("Please select a variable.")
-                    var = sp.Symbol(selected_var)
-
+            var = variables[0]
 
             if operation == "log":
                 base = float(base_input) if base_input else 10
-                result, op_steps = log_steps(function, base)
+                result, steps = log_steps(expr, base)
 
             elif operation == "derivative":
-                result, op_steps = differentiation_steps(function, var)
-
+                result, steps = differentiation_steps(expr, var)
 
             elif operation == "integral":
-                result, op_steps = integration_steps(function, var)
+                result, steps = integration_steps(expr, var)
 
             else:
                 raise ValueError("Invalid operation")
@@ -62,7 +50,7 @@ def index():
 
             # Plot only if single-variable
             if len(variables) == 1:
-                plot_path, plot_error = generate_plot(function)
+                plot_path, plot_error = generate_plot(expr)
             else:
                 plot_error = "Plotting is available only for single-variable functions."
 
@@ -76,7 +64,6 @@ def index():
         error=error,
         plot_path=plot_path,
         plot_error=plot_error,
-        variables=[str(v) for v in variables]
     )
 
 # Required for Vercel
