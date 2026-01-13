@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculas Functions Solver</title>
+    <title>Calculus Functions Solver</title>
+
+    <!-- Bootstrap -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+    <!-- MathJax -->
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script>
-        function toggleBaseInput() {
-            let operation = document.getElementById("operation").value;
-            let baseInput = document.getElementById("base-group");
-            baseInput.style.display = operation === "log" ? "block" : "none";
-        }
-    </script>
+
+    <!-- Dark mode styles -->
     <style>
         body.dark-mode {
             background-color: #121212 !important;
@@ -54,136 +53,162 @@
         }
     </style>
 </head>
+
 <body>
-    <div class="container mt-5">
-        <div class="d-flex justify-content-end mb-3">
-            <button class="btn btn-outline-secondary btn-sm" onclick="toggleDarkMode()">
-                🌙 Toggle Dark Mode
-            </button>
-        </div>
+<div class="container mt-5">
 
-        <div class="card shadow-lg p-4">
-            <h1 class="text-center text-primary">Math Function Solver</h1>
-            <h4 class="text-center text-secondary">This calculator will help you solve calculas functions and plot their Graphs!!</h4>
-            <form method="post" class="mt-4">
-                <div class="mb-3">
-                    <label for="function" class="form-label">Enter Function:</label>
-                    <input type="text" name="function" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label for="operation" class="form-label">Select Operation:</label>
-                    <select name="operation" id="operation" class="form-select" onchange="toggleBaseInput()">
-                        <option value="log">Logarithm</option>
-                        <option value="integral">Integral</option>
-                        <option value="derivative">Derivative</option>
-                    </select>
-                </div>
-                <div class="mb-3" id="variable-group" style="display: none;">
-                    <label for="variable" class="form-label">With respect to:</label>
-                    <select name="variable" id="variable" class="form-select"></select>
-                </div>
-
-                <div class="mb-3" id="base-group" style="display: none;">
-                    <label for="base" class="form-label">Base (for log only, optional):</label>
-                    <input type="text" name="base" class="form-control">
-                </div>
-                <button type="submit" class="btn btn-primary w-100">Solve</button>
-            </form>
-        </div>
-
-        {% if result %}
-        <div class="card mt-4 p-4">
-            <h2 class="text-success">Result:</h2>
-            <p class="fw-bold">$$ {{ result }} $$</p>
-
-        </div>
-        {% endif %}
-
-        {% if steps %}
-        <div class="card mt-4 p-4">
-            <h2 class="text-info">Steps:</h2>
-            <ul class="list-group">
-                {% for step in steps %}
-                    <li class="list-group-item">{{ step | safe }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
-
-        {% if plot_path %}
-        <div class="card mt-4 p-4 text-center">
-            <h3 class="text-warning">Graph:</h3>
-            {% if plot_path %}
-                <img src="data:image/png;base64,{{ plot_path }}" 
-                alt="Function Graph" 
-                class="img-fluid">
-            {% elif plot_error %}
-                <p style="color: red; font-weight: 500;">
-                    {{ plot_error }}
-                </p>
-            {% else %}
-                <p style="color: gray;">
-                    No graph available.
-                </p>
-            {% endif %}
-        </div>
-        {% endif %}
-
-        {% if error %}
-        <div class="alert alert-danger mt-4">
-            <h4>Error:</h4>
-            <p>{{ error }}</p>
-        </div>
-        {% endif %}
+    <!-- Dark mode toggle -->
+    <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-outline-secondary btn-sm" onclick="toggleDarkMode()">
+            🌙 Toggle Dark Mode
+        </button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function toggleBaseInput() {
-            let operation = document.getElementById("operation").value;
-            let baseInput = document.getElementById("base-group");
-            baseInput.style.display = operation === "log" ? "block" : "none";
+    <!-- Input card -->
+    <div class="card shadow-lg p-4">
+        <h1 class="text-center text-primary">Math Function Solver</h1>
+        <h4 class="text-center text-secondary">
+            Solve calculus functions and visualize their graphs
+        </h4>
+
+        <form method="post" class="mt-4">
+
+            <div class="mb-3">
+                <label class="form-label">Enter Function:</label>
+                <input type="text" name="function" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Select Operation:</label>
+                <select
+                    name="operation"
+                    id="operation"
+                    class="form-select"
+                    onchange="toggleBaseInput()"
+                >
+                    <option value="log">Logarithm</option>
+                    <option value="integral">Integral</option>
+                    <option value="derivative">Derivative</option>
+                </select>
+            </div>
+
+            <!-- Variable selector (used only when needed) -->
+            <div class="mb-3">
+                <label for="variable" class="form-label">
+                    With respect to (leave blank if obvious):
+                </label>
+                <input
+                    type="text"
+                    name="variable"
+                    class="form-control"
+                    placeholder="e.g. x"
+                >
+            </div>
+
+
+            <!-- Log base -->
+            <div class="mb-3" id="base-group" style="display: none;">
+                <label class="form-label">
+                    Base (Optional, default = 10):
+                </label>
+                <input type="text" name="base" class="form-control">
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                Solve
+            </button>
+        </form>
+    </div>
+
+    <!-- Result -->
+    {% if result %}
+    <div class="card mt-4 p-4">
+        <h2 class="text-success">Result:</h2>
+        <p class="fw-bold">$$ {{ result }} $$</p>
+    </div>
+    {% endif %}
+
+    <!-- Steps -->
+    {% if steps %}
+    <div class="card mt-4 p-4">
+        <h2 class="text-info">Steps:</h2>
+        <ul class="list-group">
+            {% for step in steps %}
+            <li class="list-group-item">{{ step | safe }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Graph -->
+    {% if plot_path %}
+    <div class="card mt-4 p-4 text-center">
+        <h3 class="text-warning">Graph:</h3>
+        <img
+            src="data:image/png;base64,{{ plot_path }}"
+            alt="Function Graph"
+            class="img-fluid"
+        >
+    </div>
+    {% endif %}
+
+    <!-- Error -->
+    {% if error %}
+    <div class="alert alert-danger mt-4">
+        <h4>Error:</h4>
+        <p>{{ error }}</p>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- App JS -->
+<script>
+    function toggleBaseInput() {
+        const operation = document.getElementById("operation").value;
+        const baseGroup = document.getElementById("base-group");
+        baseGroup.style.display = (operation === "log") ? "block" : "none";
+    }
+
+    function toggleDarkMode() {
+        document.body.classList.toggle("dark-mode");
+        localStorage.setItem(
+            "theme",
+            document.body.classList.contains("dark-mode") ? "dark" : "light"
+        );
+    }
+
+    function toggleVariableInput(variables) {
+        const group = document.getElementById("variable-group");
+        const select = document.getElementById("variable");
+
+        if (!group || !select || variables.length <= 1) {
+            group.style.display = "none";
+            return;
         }
 
-        function toggleDarkMode() {
-            document.body.classList.toggle("dark-mode");
+        select.innerHTML = "";
+        variables.forEach(v => {
+            const opt = document.createElement("option");
+            opt.value = v;
+            opt.textContent = v;
+            select.appendChild(opt);
+        });
 
-            if (document.body.classList.contains("dark-mode")) {
-                localStorage.setItem("theme", "dark");
-            } else {
-                localStorage.setItem("theme", "light");
-            }
+        group.style.display = "block";
+    }
+
+    window.onload = function () {
+        toggleBaseInput();
+
+        if (localStorage.getItem("theme") === "dark") {
+            document.body.classList.add("dark-mode");
         }
+    };
+</script>
 
-        function toggleVariableInput(variables) {
-            const group = document.getElementById("variable-group");
-            const select = document.getElementById("variable");
-
-            if (!group || !select) return;
-
-            if (variables.length <= 1) {
-                group.style.display = "none";
-                return;
-            }
-
-            select.innerHTML = "";
-            variables.forEach(v => {
-                const opt = document.createElement("option");
-                opt.value = v;
-                opt.textContent = v;
-                select.appendChild(opt);
-            });
-
-            group.style.display = "block";
-        }
-
-        window.onload = function () {
-            toggleBaseInput();
-
-            if (localStorage.getItem("theme") === "dark") {
-                document.body.classList.add("dark-mode");
-            }
-        };
-    </script>
 </body>
 </html>

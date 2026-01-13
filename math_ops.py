@@ -59,7 +59,14 @@ def log_steps(expr, base):
         f"$$ \\log_{{{base}}}({sp.latex(expr)}) $$"
     )
 
-    result = sp.log(expr, base)
+    log_expr = sp.log(expr, base)
+
+    # If expression has NO variables → evaluate numerically
+    if not expr.free_symbols:
+        result = log_expr.evalf()
+    else:
+        result = log_expr
+
 
     steps.append(
         f"Final Answer:"
@@ -67,8 +74,6 @@ def log_steps(expr, base):
     )
 
     return result, steps
-
-
 
 def differentiation_steps(expr, var):
     steps = []
@@ -116,8 +121,6 @@ def differentiation_steps(expr, var):
     )
 
     return final_result, steps
-
-
 
 def integration_steps(expr, var):
     steps = []
@@ -172,6 +175,3 @@ def integration_steps(expr, var):
     )
 
     return final_result, steps
-
-
-
